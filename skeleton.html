@@ -1,0 +1,2050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Cache-busting meta tags to ensure fresh content -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="last-modified" content="">
+    
+    <title>Evaluer - Student Grading System</title>
+    <style>
+        :root {
+            /* Apple-inspired color palette */
+            --primary: #007AFF;
+            --primary-hover: #0051D5;
+            --secondary: #8E8E93;
+            --accent: #34C759;
+            --warning: #FF9500;
+            --error: #FF3B30;
+            
+            /* Neutral palette */
+            --background: #F2F2F7;
+            --surface: #FFFFFF;
+            --surface-secondary: #F9F9FB;
+            --border: rgba(60, 60, 67, 0.12);
+            --border-secondary: rgba(60, 60, 67, 0.08);
+            
+            /* Typography */
+            --text-primary: #1C1C1E;
+            --text-secondary: #8E8E93;
+            --text-tertiary: #C7C7CC;
+            
+            /* Spacing & sizing */
+            --radius: 6px;
+            --radius-large: 8px;
+            --spacing-xs: 2px;
+            --spacing-sm: 4px;
+            --spacing-md: 8px;
+            --spacing-lg: 12px;
+            --spacing-xl: 16px;
+            --spacing-2xl: 24px;
+            
+            /* Effects */
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+            --blur-backdrop: saturate(180%) blur(20px);
+            
+            /* Transitions */
+            --transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            line-height: 1.47;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Header - Minimal and elegant */
+        .header {
+            background: var(--surface);
+            backdrop-filter: var(--blur-backdrop);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: var(--spacing-lg) var(--spacing-md);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .header .subtitle {
+            font-size: 17px;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .header .timestamp {
+            font-size: 13px;
+            color: var(--text-tertiary);
+            font-weight: 400;
+            margin-top: var(--spacing-xs);
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            transition: color 0.3s ease;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            font-size: 13px;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-tertiary);
+            transition: background-color 0.3s ease;
+        }
+
+        .status-indicator.connected {
+            background: var(--accent);
+            box-shadow: 0 0 4px rgba(52, 199, 89, 0.3);
+        }
+
+        .status-indicator.disconnected {
+            background: var(--error);
+            box-shadow: 0 0 4px rgba(255, 59, 48, 0.3);
+        }
+
+        .status-indicator.connecting {
+            background: var(--warning);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-text {
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        /* Main layout */
+        .main-content {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: var(--spacing-xl) var(--spacing-md) var(--spacing-2xl);
+        }
+        
+        /* Navigation tabs - Apple-style segmented control */
+        .nav-tabs {
+            display: flex;
+            background: var(--surface-secondary);
+            border-radius: var(--radius);
+            padding: 2px;
+            margin-bottom: var(--spacing-xl);
+            box-shadow: var(--shadow);
+        }
+        
+        .nav-tab {
+            flex: 1;
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: transparent;
+            border: none;
+            border-radius: calc(var(--radius) - 2px);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: var(--transition);
+            text-align: center;
+        }
+        
+        .nav-tab.active {
+            background: var(--surface);
+            color: var(--text-primary);
+            box-shadow: var(--shadow);
+        }
+        
+        /* Tab content with smooth transitions */
+        .tab-content {
+            display: none;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: var(--transition);
+        }
+        
+        .tab-content.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Cards - Clean and minimal */
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius-large);
+            box-shadow: var(--shadow);
+            margin-bottom: var(--spacing-lg);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-bottom: 1px solid var(--border);
+            background: var(--surface-secondary);
+        }
+
+        .card-body {
+            padding: var(--spacing-lg);
+        }
+        
+        .card h2 {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            color: var(--text-primary);
+        }
+        
+        /* Form elements - Apple-inspired */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .form-grid.five-columns {
+            grid-template-columns: repeat(5, 1fr);
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+        }
+        
+        .form-group label {
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 13px;
+        }
+        
+        .form-control {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 14px;
+            background: var(--surface);
+            transition: var(--transition);
+            -webkit-appearance: none;
+            appearance: none;
+            min-height: 32px;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+        }
+
+        .form-control:disabled {
+            background: var(--surface-secondary);
+            color: var(--text-secondary);
+            cursor: not-allowed;
+        }
+        
+        /* Buttons - iOS-style */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: none;
+            border-radius: var(--radius);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition-bounce);
+            text-decoration: none;
+            min-height: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-success {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: #28CD41;
+            transform: translateY(-1px);
+        }
+        
+        .btn:disabled {
+            background: var(--text-tertiary);
+            color: var(--text-secondary);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-sm {
+            padding: 2px var(--spacing-sm);
+            font-size: 12px;
+            min-height: 24px;
+        }
+
+        
+        /* Alert messages - Apple-style notifications */
+        .alert {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius);
+            margin-bottom: var(--spacing-md);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            backdrop-filter: var(--blur-backdrop);
+            font-size: 13px;
+        }
+        
+        .alert-error {
+            background: rgba(255, 59, 48, 0.1);
+            color: var(--error);
+            border: 1px solid rgba(255, 59, 48, 0.2);
+        }
+        
+        .alert-success {
+            background: rgba(52, 199, 89, 0.1);
+            color: var(--accent);
+            border: 1px solid rgba(52, 199, 89, 0.2);
+        }
+
+        .alert-warning {
+            background: rgba(255, 149, 0, 0.1);
+            color: var(--warning);
+            border: 1px solid rgba(255, 149, 0, 0.2);
+        }
+
+        .alert::before {
+            content: '';
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .alert-error::before {
+            background: var(--error);
+        }
+
+        .alert-success::before {
+            background: var(--accent);
+        }
+
+        .alert-warning::before {
+            background: var(--warning);
+        }
+        
+        /* Assignment details */
+        .assignment-details {
+            margin-top: var(--spacing-lg);
+        }
+        
+        .response-item {
+            border: 1px solid var(--border);
+            border-radius: var(--radius-large);
+            margin-bottom: var(--spacing-md);
+            background: var(--surface);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .response-item:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
+        .response-header {
+            background: var(--surface-secondary);
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .response-type {
+            font-weight: 600;
+            padding: 2px var(--spacing-sm);
+            border-radius: 12px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        
+        .response-type.Submission {
+            background: rgba(52, 199, 89, 0.15);
+            color: var(--accent);
+        }
+        
+        .response-type.Redo {
+            background: rgba(255, 149, 0, 0.15);
+            color: var(--warning);
+        }
+        
+        .response-type.Comment {
+            background: rgba(142, 142, 147, 0.15);
+            color: var(--secondary);
+        }
+        
+        .response-type.Done {
+            background: rgba(0, 122, 255, 0.15);
+            color: var(--primary);
+        }
+        
+        .response-type.AutoCheck, .response-type.AutoGraded {
+            background: rgba(175, 82, 222, 0.15);
+            color: #AF52DE;
+        }
+        
+        .response-content {
+            padding: var(--spacing-lg);
+            background: var(--surface);
+            border-left: 2px solid var(--primary);
+            margin: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--radius);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .grade-section {
+            padding: var(--spacing-md) var(--spacing-lg);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--surface-secondary);
+            border-top: 1px solid var(--border);
+        }
+        
+        .grade-display {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 13px;
+        }
+        
+        .grade-form {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        
+        .grade-input {
+            width: 48px;
+            padding: 2px var(--spacing-xs);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            text-align: center;
+            font-weight: 500;
+            font-size: 12px;
+        }
+        
+        .total-grade {
+            background: linear-gradient(135deg, var(--primary) 0%, #5856D6 100%);
+            color: white;
+            text-align: center;
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-large);
+            margin: var(--spacing-lg) 0;
+            font-size: 20px;
+            font-weight: 600;
+            box-shadow: var(--shadow-lg);
+            letter-spacing: -0.01em;
+        }
+        
+        /* Files section */
+        .files-section {
+            border-top: 1px solid var(--border);
+            background: var(--surface-secondary);
+        }
+        
+        .files-content {
+            padding: var(--spacing-lg);
+        }
+        
+        .files-info {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .files-info strong {
+            color: var(--text-primary);
+        }
+        
+        .file-viewer {
+            border: 1px solid var(--border);
+            border-radius: var(--radius-large);
+            background: var(--surface);
+            overflow: hidden;
+        }
+        
+        .file-list {
+            border-bottom: 1px solid var(--border);
+            background: var(--surface-secondary);
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-sm) var(--spacing-md);
+            cursor: pointer;
+            transition: var(--transition);
+            border-bottom: 1px solid var(--border-secondary);
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+        
+        .file-item:hover {
+            background: rgba(0, 122, 255, 0.05);
+        }
+        
+        .file-item.selected {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .file-name {
+            font-weight: 500;
+            font-size: 13px;
+        }
+        
+        .file-size {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .file-item.selected .file-size {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .file-content {
+            padding: var(--spacing-lg);
+            min-height: 160px;
+            max-height: 400px;
+            overflow: auto;
+        }
+        
+        .file-content pre {
+            margin: 0;
+            padding: var(--spacing-md);
+            background: var(--surface-secondary);
+            border-radius: var(--radius);
+            font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 11px;
+            line-height: 1.4;
+            overflow-x: auto;
+            border: 1px solid var(--border);
+        }
+        
+        /* Tree View - Cleaner hierarchy */
+        .tree-container {
+            background: var(--surface);
+            border-radius: var(--radius-large);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+        
+        .tree-item {
+            border-bottom: 1px solid var(--border-secondary);
+        }
+
+        .tree-item:last-child {
+            border-bottom: none;
+        }
+        
+        .tree-node {
+            display: flex;
+            align-items: center;
+            padding: var(--spacing-sm) var(--spacing-md);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .tree-node:hover {
+            background: var(--surface-secondary);
+        }
+        
+        .tree-node.subject {
+            background: linear-gradient(90deg, rgba(0, 122, 255, 0.1) 0%, rgba(0, 122, 255, 0.05) 100%);
+            border-left: 2px solid var(--primary);
+            font-weight: 600;
+            font-size: 15px;
+        }
+        
+        .tree-node.module {
+            background: linear-gradient(90deg, rgba(175, 82, 222, 0.1) 0%, rgba(175, 82, 222, 0.05) 100%);
+            border-left: 2px solid #AF52DE;
+            margin-left: var(--spacing-md);
+            font-weight: 500;
+            font-size: 13px;
+        }
+        
+        .tree-node.exercise {
+            background: linear-gradient(90deg, rgba(52, 199, 89, 0.1) 0%, rgba(52, 199, 89, 0.05) 100%);
+            border-left: 2px solid var(--accent);
+            margin-left: var(--spacing-lg);
+            font-size: 13px;
+        }
+        
+        .tree-toggle {
+            margin-right: var(--spacing-sm);
+            font-size: 10px;
+            width: 12px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-weight: bold;
+        }
+        
+        .tree-content {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .tree-name {
+            flex: 1;
+        }
+        
+        .tree-grade {
+            font-weight: 600;
+            padding: 2px var(--spacing-sm);
+            border-radius: 12px;
+            color: white;
+            min-width: 40px;
+            text-align: center;
+            font-size: 11px;
+        }
+        
+        .grade-excellent {
+            background: linear-gradient(135deg, var(--accent) 0%, #28CD41 100%);
+        }
+        
+        .grade-good {
+            background: linear-gradient(135deg, #8BC34A 0%, #689F38 100%);
+        }
+        
+        .grade-average {
+            background: linear-gradient(135deg, var(--warning) 0%, #F57C00 100%);
+        }
+        
+        .grade-poor {
+            background: linear-gradient(135deg, var(--error) 0%, #D32F2F 100%);
+        }
+        
+        .tree-children {
+            display: none;
+        }
+        
+        .tree-children.expanded {
+            display: block;
+        }
+        
+        .student-selector {
+            background: var(--surface);
+            border-radius: var(--radius-large);
+            border: 1px solid var(--border);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .student-selector .card-body {
+            display: flex;
+            gap: var(--spacing-md);
+            align-items: end;
+        }
+
+        .student-selector .form-group {
+            flex: 1;
+        }
+        
+        .overall-grade {
+            background: linear-gradient(135deg, #AF52DE 0%, #5856D6 100%);
+            color: white;
+            text-align: center;
+            padding: var(--spacing-lg);
+            margin: var(--spacing-lg) 0;
+            border-radius: var(--radius-large);
+            box-shadow: var(--shadow-lg);
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .grade-legend {
+            background: var(--surface-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-large);
+            padding: var(--spacing-lg);
+            margin: var(--spacing-lg) 0;
+        }
+
+        .grade-legend h4 {
+            margin-bottom: var(--spacing-md);
+            color: var(--text-primary);
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .grade-legend p {
+            margin-bottom: var(--spacing-xs);
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .legend-items {
+            display: flex;
+            gap: var(--spacing-sm);
+            flex-wrap: wrap;
+            margin-top: var(--spacing-md);
+        }
+
+        .legend-item {
+            padding: 2px var(--spacing-sm);
+            border-radius: 12px;
+            color: white;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .no-files {
+            color: var(--text-secondary);
+            font-style: italic;
+            text-align: center;
+            padding: var(--spacing-lg);
+            font-size: 13px;
+        }
+
+        .no-file-selected {
+            color: var(--text-secondary);
+            font-style: italic;
+            text-align: center;
+            padding: var(--spacing-xl);
+            font-size: 13px;
+        }
+
+        .no-data-message {
+            color: var(--text-secondary);
+            text-align: center;
+            padding: var(--spacing-2xl);
+            background: var(--surface-secondary);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            margin: var(--spacing-lg);
+        }
+
+        .no-data-message p {
+            margin: 0;
+            margin-bottom: var(--spacing-sm);
+            font-size: 14px;
+        }
+
+        .no-data-message p:last-child {
+            margin-bottom: 0;
+            font-size: 13px;
+            opacity: 0.8;
+        }
+
+        .binary-file-notice {
+            color: var(--text-secondary);
+            text-align: center;
+            padding: var(--spacing-lg);
+            background: var(--surface-secondary);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            font-size: 13px;
+        }
+
+        .file-download {
+            background: var(--accent);
+            color: white;
+            padding: 2px var(--spacing-sm);
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 12px;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: var(--spacing-sm);
+            transition: var(--transition);
+            font-weight: 500;
+        }
+        
+        .file-download:hover {
+            background: #28CD41;
+            transform: translateY(-1px);
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 1.5px solid var(--border);
+            border-top: 1.5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: var(--spacing-xs);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .header .subtitle {
+                font-size: 14px;
+            }
+
+            .main-content {
+                padding: var(--spacing-md) var(--spacing-sm) var(--spacing-lg);
+            }
+
+            .form-grid, .form-grid.five-columns {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-tabs {
+                flex-direction: column;
+            }
+
+            .tree-node.module {
+                margin-left: var(--spacing-sm);
+            }
+
+            .tree-node.exercise {
+                margin-left: var(--spacing-md);
+            }
+
+            .student-selector .card-body {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .legend-items {
+                justify-content: center;
+            }
+
+            .card-header, .card-body {
+                padding: var(--spacing-md);
+            }
+        }
+
+        /* High contrast and accessibility improvements */
+        @media (prefers-contrast: high) {
+            :root {
+                --border: rgba(60, 60, 67, 0.3);
+                --shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            }
+        }
+
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1>Evaluer</h1>
+            <p class="subtitle">Academic grading and assessment platform</p>
+            <div style="display: flex; align-items: center; gap: 12px; margin-top: 8px;">
+                <p class="timestamp" id="lastUpdated">Initializing...</p>
+                <div class="connection-status" id="connectionStatus">
+                    <span class="status-indicator" id="statusIndicator"></span>
+                    <span class="status-text" id="statusText">Connecting...</span>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <main class="main-content">
+        <nav class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('assignment-tab')">Assignment Grading</button>
+            <button class="nav-tab" onclick="showTab('grades-tree-tab')">Student Overview</button>
+        </nav>
+        
+        <div id="assignment-tab" class="tab-content active">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Select Course Components</h2>
+                </div>
+                <div class="card-body">
+                    <div class="form-grid five-columns">
+                        <div class="form-group">
+                            <label for="subjectSelect">Subject</label>
+                            <select id="subjectSelect" class="form-control">
+                                <option value="">Loading subjects...</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="moduleSelect">Module</label>
+                            <select id="moduleSelect" class="form-control" disabled>
+                                <option value="">Select subject first</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="exerciseSelect">Exercise</label>
+                            <select id="exerciseSelect" class="form-control" disabled>
+                                <option value="">Select module first</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="studentSelect">Student</label>
+                            <select id="studentSelect" class="form-control" disabled>
+                                <option value="">Loading students...</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <button id="loadAssignmentBtn" class="btn btn-primary" disabled>
+                                Load Assignment
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="messageContainer"></div>
+            
+            <div id="assignmentContainer" class="card" style="display: none;">
+                <div class="card-header">
+                    <h2>Assignment Details</h2>
+                </div>
+                <div class="card-body">
+                    <div id="assignmentContent"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="grades-tree-tab" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Student Overview</h2>
+                </div>
+                <div class="card-body">
+                    <div class="student-selector">
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="treeStudentSelect">Select Student</label>
+                                <select id="treeStudentSelect" class="form-control">
+                                    <option value="">Loading students...</option>
+                                </select>
+                            </div>
+                            <button id="loadGradesTreeBtn" class="btn btn-primary" onclick="loadStudentGradesTree()" disabled>
+                                Load Grades
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="gradesTreeContainer" style="display: none;">
+                        <div id="overallGradeContainer"></div>
+                        
+                        <div class="grade-legend">
+                            <h4>Grade Legend</h4>
+                            <p><strong>Exercises:</strong> Actual points earned (e.g., "7/10")</p>
+                            <p><strong>Modules & Subjects:</strong> Average grade (e.g., "6.5")</p>
+                            <p><strong>Overall:</strong> Weighted average across all subjects</p>
+                            <div class="legend-items">
+                                <span class="legend-item grade-excellent">Excellent (90-100)</span>
+                                <span class="legend-item grade-good">Good (70-89)</span>
+                                <span class="legend-item grade-average">Average (50-69)</span>
+                                <span class="legend-item grade-poor">Needs Improvement (0-49)</span>
+                            </div>
+                        </div>
+                        
+                        <div id="gradesTreeContent" class="tree-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API_BASE = 'http://localhost:8080';
+        
+        // Connection status management
+        function updateConnectionStatus(status, message = '') {
+            const indicator = document.getElementById('statusIndicator');
+            const text = document.getElementById('statusText');
+            
+            if (!indicator || !text) return;
+            
+            indicator.className = `status-indicator ${status}`;
+            
+            switch (status) {
+                case 'connected':
+                    text.textContent = 'Connected';
+                    text.style.color = 'var(--accent)';
+                    break;
+                case 'disconnected':
+                    text.textContent = message || 'Disconnected';
+                    text.style.color = 'var(--error)';
+                    break;
+                case 'connecting':
+                    text.textContent = 'Connecting...';
+                    text.style.color = 'var(--warning)';
+                    break;
+                default:
+                    text.textContent = 'Unknown';
+                    text.style.color = 'var(--text-secondary)';
+            }
+        }
+
+        // Health check function
+        async function checkApiHealth() {
+            try {
+                updateConnectionStatus('connecting');
+                const response = await fetch(`${API_BASE}/docs`, { 
+                    method: 'HEAD',
+                    cache: 'no-cache'
+                });
+                
+                if (response.ok) {
+                    updateConnectionStatus('connected');
+                    return true;
+                } else {
+                    updateConnectionStatus('disconnected', 'API Error');
+                    return false;
+                }
+            } catch (error) {
+                updateConnectionStatus('disconnected', 'Cannot reach server');
+                return false;
+            }
+        }
+
+        function updateLastModifiedTimestamp() {
+            const now = new Date();
+            const timestamp = now.toLocaleString('en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+            
+            const lastUpdatedElement = document.getElementById('lastUpdated');
+            if (lastUpdatedElement) {
+                lastUpdatedElement.textContent = `Last updated: ${timestamp}`;
+                // Add a brief flash animation to indicate update
+                lastUpdatedElement.style.color = 'var(--accent)';
+                setTimeout(() => {
+                    lastUpdatedElement.style.color = 'var(--text-tertiary)';
+                }, 1000);
+            }
+            
+            // Update meta tag for cache busting
+            const metaTag = document.querySelector('meta[name="last-modified"]');
+            if (metaTag) {
+                metaTag.setAttribute('content', now.toISOString());
+            }
+        }
+        
+        function showLoadingState() {
+            const lastUpdatedElement = document.getElementById('lastUpdated');
+            if (lastUpdatedElement) {
+                lastUpdatedElement.textContent = 'Updating...';
+                lastUpdatedElement.style.color = 'var(--warning)';
+            }
+        }
+        
+        // Add cache-busting parameters to API calls
+        function addCacheBuster(url) {
+            const separator = url.includes('?') ? '&' : '?';
+            return `${url}${separator}_cb=${Date.now()}`;
+        }
+        
+        // Enhanced API call function with cache busting
+        // Auto-refresh functionality
+        function setupAutoRefresh() {
+            // Update timestamp every 30 seconds
+            setInterval(updateLastModifiedTimestamp, 30000);
+            
+            // Optional: Auto-refresh data every 5 minutes if no user activity
+            let lastActivity = Date.now();
+            let refreshInterval;
+            
+            function resetActivity() {
+                lastActivity = Date.now();
+                if (refreshInterval) {
+                    clearTimeout(refreshInterval);
+                }
+                refreshInterval = setTimeout(() => {
+                    // Only auto-refresh if user hasn't been active for 5 minutes
+                    if (Date.now() - lastActivity > 300000) {
+                        location.reload();
+                    }
+                }, 300000);
+            }
+            
+            // Track user activity
+            ['click', 'keypress', 'scroll', 'mousemove'].forEach(event => {
+                document.addEventListener(event, resetActivity, { passive: true });
+            });
+            
+            // Add keyboard shortcut for manual refresh (Ctrl+R or F5)
+            document.addEventListener('keydown', (event) => {
+                if ((event.ctrlKey && event.key === 'r') || event.key === 'F5') {
+                    event.preventDefault();
+                    location.reload();
+                }
+                // Also add Ctrl+Shift+R for hard refresh
+                if (event.ctrlKey && event.shiftKey && event.key === 'R') {
+                    event.preventDefault();
+                    // Clear caches and reload
+                    if ('caches' in window) {
+                        caches.keys().then(names => {
+                            names.forEach(name => {
+                                caches.delete(name);
+                            });
+                        });
+                    }
+                    location.reload(true);
+                }
+            });
+            
+            resetActivity();
+        }
+        
+        let subjects = [];
+        let modules = [];
+        let exercises = [];
+        let students = [];
+        let currentAssignment = null;
+        
+        // DOM elements
+        const subjectSelect = document.getElementById('subjectSelect');
+        const moduleSelect = document.getElementById('moduleSelect');
+        const exerciseSelect = document.getElementById('exerciseSelect');
+        const studentSelect = document.getElementById('studentSelect');
+        const loadAssignmentBtn = document.getElementById('loadAssignmentBtn');
+        const assignmentContainer = document.getElementById('assignmentContainer');
+        const assignmentContent = document.getElementById('assignmentContent');
+        const messageContainer = document.getElementById('messageContainer');
+        
+        // Tree view DOM elements
+        const treeStudentSelect = document.getElementById('treeStudentSelect');
+        const loadGradesTreeBtn = document.getElementById('loadGradesTreeBtn');
+        const gradesTreeContainer = document.getElementById('gradesTreeContainer');
+        const gradesTreeContent = document.getElementById('gradesTreeContent');
+        const overallGradeContainer = document.getElementById('overallGradeContainer');
+        
+        // Tab switching functionality
+        function showTab(tabId) {
+            // Hide all tab contents and remove active states
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab and mark button as active
+            const targetTab = document.getElementById(tabId);
+            if (targetTab) {
+                // Small delay for smooth transition
+                setTimeout(() => {
+                    targetTab.classList.add('active');
+                }, 10);
+            }
+            event.target.classList.add('active');
+        }
+        
+        // Utility functions
+        function showMessage(message, type = 'error') {
+            const alertClass = type === 'success' ? 'alert-success' : 
+                              type === 'warning' ? 'alert-warning' : 'alert-error';
+            messageContainer.innerHTML = `<div class="alert ${alertClass}">${message}</div>`;
+            
+            // Auto-hide after 6 seconds
+            setTimeout(() => {
+                if (messageContainer.innerHTML.includes(message)) {
+                    messageContainer.innerHTML = '';
+                }
+            }, 6000);
+        }
+
+        function showLoading(element, text = 'Loading...') {
+            const originalText = element.innerHTML;
+            element.innerHTML = `<span class="loading-spinner"></span>${text}`;
+            element.disabled = true;
+            element.dataset.originalText = originalText;
+        }
+
+        function hideLoading(element) {
+            element.innerHTML = element.dataset.originalText || 'Load';
+            element.disabled = false;
+        }
+        
+        // Enhanced API call function with cache busting and error handling
+        async function apiCall(endpoint, options = {}) {
+            const url = addCacheBuster(`${API_BASE}${endpoint}`);
+            
+            // Show loading state
+            showLoadingState();
+            
+            try {
+                const defaultOptions = {
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0',
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    }
+                };
+                
+                const response = await fetch(url, { ...defaultOptions, ...options });
+                
+                if (!response.ok) {
+                    updateConnectionStatus('disconnected', `HTTP ${response.status}`);
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                // Update connection status and timestamp on successful call
+                updateConnectionStatus('connected');
+                updateLastModifiedTimestamp();
+                
+                return await response.json();
+            } catch (error) {
+                console.error('API call failed:', error);
+                
+                // Update connection status
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    updateConnectionStatus('disconnected', 'Network error');
+                    showMessage('Cannot connect to server. Please check if the API is running on port 8080.');
+                } else {
+                    updateConnectionStatus('disconnected', 'API Error');
+                    showMessage(`API Error: ${error.message}`);
+                }
+                
+                // Update timestamp to show error state
+                const lastUpdatedElement = document.getElementById('lastUpdated');
+                if (lastUpdatedElement) {
+                    lastUpdatedElement.textContent = 'Update failed - check connection';
+                    lastUpdatedElement.style.color = 'var(--error)';
+                }
+                
+                throw error;
+            }
+        }
+        
+        function populateSelect(selectElement, items, valueKey = 'id', textKey = 'name', placeholder = 'Select...') {
+            selectElement.innerHTML = `<option value="">${placeholder}</option>`;
+            items.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item[valueKey];
+                option.textContent = item[textKey];
+                selectElement.appendChild(option);
+            });
+        }
+        
+        // Load initial data
+        async function loadSubjects() {
+            try {
+                subjects = await apiCall('/course/subjects');
+                populateSelect(subjectSelect, subjects, 'id', 'name', 'Select subject...');
+            } catch (error) {
+                subjectSelect.innerHTML = '<option value="">Error loading subjects</option>';
+            }
+        }
+        
+        async function loadStudents() {
+            try {
+                students = await apiCall('/course/students');
+                populateSelect(studentSelect, students, 'id', 'display_name', 'Select student...');
+                studentSelect.disabled = false;
+            } catch (error) {
+                studentSelect.innerHTML = '<option value="">Error loading students</option>';
+            }
+        }
+        
+        async function loadModules(subjectId) {
+            try {
+                moduleSelect.innerHTML = '<option value="">Loading modules...</option>';
+                modules = await apiCall(`/course/modules?subject_id=${subjectId}`);
+                populateSelect(moduleSelect, modules, 'id', 'name', 'Select module...');
+                moduleSelect.disabled = false;
+                
+                // Reset dependent selects
+                exerciseSelect.innerHTML = '<option value="">Select module first</option>';
+                exerciseSelect.disabled = true;
+                updateLoadButton();
+            } catch (error) {
+                moduleSelect.innerHTML = '<option value="">Error loading modules</option>';
+                showMessage('Failed to load modules. Please try again.');
+            }
+        }
+        
+        async function loadExercises(moduleId) {
+            try {
+                exerciseSelect.innerHTML = '<option value="">Loading exercises...</option>';
+                exercises = await apiCall(`/course/exercises?module_id=${moduleId}`);
+                populateSelect(exerciseSelect, exercises, 'id', 'name', 'Select exercise...');
+                exerciseSelect.disabled = false;
+                updateLoadButton();
+            } catch (error) {
+                exerciseSelect.innerHTML = '<option value="">Error loading exercises</option>';
+                showMessage('Failed to load exercises. Please try again.');
+            }
+        }
+        
+        // Tree view functions
+        async function loadStudentsForTree() {
+            try {
+                const treeStudents = await apiCall('/course/students');
+                populateSelect(treeStudentSelect, treeStudents, 'id', 'display_name', 'Select student...');
+                treeStudentSelect.addEventListener('change', () => {
+                    loadGradesTreeBtn.disabled = !treeStudentSelect.value;
+                });
+            } catch (error) {
+                treeStudentSelect.innerHTML = '<option value="">Error loading students</option>';
+            }
+        }
+        
+        async function loadStudentGradesTree() {
+            const studentId = treeStudentSelect.value;
+            if (!studentId) return;
+            
+            try {
+                showLoading(loadGradesTreeBtn, 'Loading Grades...');
+                
+                // Get all subjects first
+                const subjects = await apiCall('/course/subjects');
+                
+                // For each subject, get modules and build the tree
+                const subjectsWithGrades = await Promise.all(subjects.map(async subject => {
+                    try {
+                        const modules = await apiCall(`/course/modules?subject_id=${subject.id}`);
+                        const modulesWithGrades = await Promise.all(modules.map(async module => {
+                            try {
+                                const exercises = await apiCall(`/course/exercises?module_id=${module.id}`);
+                                const moduleGrade = await apiCall(`/grades/modules?student_id=${studentId}&module_id=${module.id}`);
+                                
+                                const exercisesWithGrades = await Promise.all(exercises.map(async exercise => {
+                                    try {
+                                        // Get assignment for this exercise and student
+                                        const assignment = await apiCall(`/course/assignments?exercise_id=${exercise.id}&student_id=${studentId}`);
+                                        if (assignment?.id) {
+                                            const exerciseGrade = await apiCall(`/grades/assignments/${assignment.id}?student_id=${studentId}`);
+                                            return { ...exercise, grade: exerciseGrade || 0 };
+                                        }
+                                        return { ...exercise, grade: 0 };
+                                    } catch (error) {
+                                        return { ...exercise, grade: 0 };
+                                    }
+                                }));
+                                
+                                return { ...module, grade: moduleGrade || 0, exercises: exercisesWithGrades };
+                            } catch (error) {
+                                return { ...module, grade: 0, exercises: [] };
+                            }
+                        }));
+                        
+                        // Calculate subject grade as average of module grades
+                        const validModules = modulesWithGrades.filter(m => m.grade > 0);
+                        const subjectGrade = validModules.length > 0 
+                            ? validModules.reduce((sum, m) => sum + m.grade, 0) / validModules.length 
+                            : 0;
+                        
+                        return { ...subject, grade: subjectGrade, modules: modulesWithGrades };
+                    } catch (error) {
+                        return { ...subject, grade: 0, modules: [] };
+                    }
+                }));
+                
+                // Calculate overall grade
+                const validSubjects = subjectsWithGrades.filter(s => s.grade > 0);
+                const overallGrade = validSubjects.length > 0 
+                    ? validSubjects.reduce((sum, s) => sum + s.grade, 0) / validSubjects.length * 10 // Convert to 100 scale
+                    : 0;
+                
+                const gradesData = {
+                    overall_grade: overallGrade,
+                    subjects: subjectsWithGrades
+                };
+                
+                displayGradesTree(gradesData);
+                gradesTreeContainer.style.display = 'block';
+            } catch (error) {
+                showMessage('Error loading grades tree: ' + error.message);
+                console.error('Grades tree error:', error);
+            } finally {
+                hideLoading(loadGradesTreeBtn);
+            }
+        }
+        
+        function displayGradesTree(data) {
+            const overallGradeClass = getGradeClass(data.overall_grade, 'overall');
+            
+            overallGradeContainer.innerHTML = `
+                <div class="overall-grade ${overallGradeClass}">
+                    Overall Grade: ${data.overall_grade.toFixed(1)}/100
+                </div>
+            `;
+            
+            if (!data.subjects || data.subjects.length === 0) {
+                gradesTreeContent.innerHTML = `
+                    <div class="no-data-message">
+                        <p>No grade data available for this student.</p>
+                        <p>Grades will appear here once assignments are completed and graded.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let treeHtml = '';
+            data.subjects.forEach(subject => {
+                if (subject.modules && subject.modules.length > 0) {
+                    treeHtml += createTreeNode(subject, 'subject');
+                }
+            });
+            
+            if (treeHtml === '') {
+                gradesTreeContent.innerHTML = `
+                    <div class="no-data-message">
+                        <p>No graded assignments found for this student.</p>
+                    </div>
+                `;
+            } else {
+                gradesTreeContent.innerHTML = treeHtml;
+            }
+        }
+        
+        function createTreeNode(item, type) {
+            const gradeClass = getGradeClass(item.grade, type);
+            const hasChildren = (type === 'subject' && item.modules.length > 0) || 
+                              (type === 'module' && item.exercises.length > 0);
+            
+            let html = `
+                <div class="tree-item">
+                    <div class="tree-node ${type}" onclick="toggleTreeNode(this)">
+                        <span class="tree-toggle">${hasChildren ? '▼' : ''}</span>
+                        <div class="tree-content">
+                            <span class="tree-name">${item.name}</span>
+                            <span class="tree-grade ${gradeClass}">${formatGrade(item.grade, type)}</span>
+                        </div>
+                    </div>
+            `;
+            
+            if (hasChildren) {
+                html += '<div class="tree-children expanded">';
+                
+                if (type === 'subject') {
+                    item.modules.forEach(module => {
+                        html += createTreeNode(module, 'module');
+                    });
+                } else if (type === 'module') {
+                    item.exercises.forEach(exercise => {
+                        html += createTreeNode(exercise, 'exercise');
+                    });
+                }
+                
+                html += '</div>';
+            }
+            
+            html += '</div>';
+            return html;
+        }
+        
+        function formatGrade(grade, type) {
+            if (type === 'exercise') {
+                // Exercises show actual points (e.g., "8/10" or "3/10")
+                return `${grade}/10`;
+            } else {
+                // Modules and subjects show average grade
+                return grade.toFixed(1);
+            }
+        }
+        
+        function getGradeClass(grade, type) {
+            if (type === 'exercise') {
+                // For exercises, grade is out of 10
+                if (grade >= 9) return 'grade-excellent';
+                if (grade >= 7) return 'grade-good';
+                if (grade >= 5) return 'grade-average';
+                return 'grade-poor';
+            } else if (type === 'overall') {
+                // For overall grade, grade is out of 100
+                if (grade >= 90) return 'grade-excellent';
+                if (grade >= 70) return 'grade-good';
+                if (grade >= 50) return 'grade-average';
+                return 'grade-poor';
+            } else {
+                // For modules and subjects, grade is average (out of 10)
+                if (grade >= 8) return 'grade-excellent';
+                if (grade >= 6) return 'grade-good';
+                if (grade >= 4) return 'grade-average';
+                return 'grade-poor';
+            }
+        }
+        
+        function toggleTreeNode(node) {
+            const children = node.parentElement.querySelector('.tree-children');
+            const toggle = node.querySelector('.tree-toggle');
+            
+            if (children) {
+                children.classList.toggle('expanded');
+                toggle.textContent = children.classList.contains('expanded') ? '▼' : '▶';
+            }
+        }
+        
+        function updateLoadButton() {
+            const canLoad = exerciseSelect.value && studentSelect.value;
+            loadAssignmentBtn.disabled = !canLoad;
+        }
+        
+        async function loadAssignment() {
+            const studentId = studentSelect.value;
+            const exerciseId = exerciseSelect.value;
+            
+            if (!studentId || !exerciseId) {
+                showMessage('Please select both a student and an exercise');
+                return;
+            }
+            
+            try {
+                showLoading(loadAssignmentBtn, 'Loading Assignment...');
+                // Get assignment data from POC API
+                const assignmentData = await apiCall(`/course/assignments?exercise_id=${exerciseId}&student_id=${studentId}`);
+                if (!assignmentData || !assignmentData.id) {
+                    showMessage('No assignment found for this student and exercise combination');
+                    return;
+                }
+                // Get responses for the assignment
+                const responses = await apiCall(`/course/assignments/${assignmentData.id}/responses`);
+                // Fetch grades for each response from backend
+                const responsesWithGrades = await Promise.all(responses.map(async response => {
+                    try {
+                        const grade = await apiCall(`/grades/assignments/${assignmentData.id}/responses/${response.id}?student_id=${studentId}`);
+                        return { ...response, grade };
+                    } catch (e) {
+                        return { ...response, grade: 0 };
+                    }
+                }));
+                // Fetch module grade from backend
+                let moduleGrade = 0;
+                try {
+                    moduleGrade = await apiCall(`/grades/modules?student_id=${studentId}&module_id=${assignmentData.module_id}`);
+                } catch (e) {
+                    moduleGrade = 0;
+                }
+                currentAssignment = {
+                    assignment_id: assignmentData.id,
+                    student_id: studentId,
+                    exercise_id: exerciseId,
+                    responses: responsesWithGrades,
+                    total_grade: responsesWithGrades.length > 0 ? 
+                        responsesWithGrades.reduce((sum, r) => sum + (r.grade || 0), 0) / responsesWithGrades.length : 0,
+                    module_grade: moduleGrade
+                };
+                displayAssignment(currentAssignment);
+                assignmentContainer.style.display = 'block';
+                showMessage('Assignment loaded successfully!', 'success');
+            } catch (error) {
+                if (error.message.includes('404')) {
+                    showMessage('No assignment found for this student and exercise combination');
+                } else {
+                    showMessage(`Failed to load assignment: ${error.message}`);
+                }
+            } finally {
+                hideLoading(loadAssignmentBtn);
+            }
+        }
+        
+        function displayAssignment(assignment) {
+            const html = `
+                <div class="total-grade">
+                    Total Grade: ${assignment.total_grade.toFixed(1)}/10
+                </div>
+                <div class="total-grade" style="background: linear-gradient(135deg, #34C759 0%, #007AFF 100%); font-size: 16px; margin-bottom: 1rem;">
+                    Module Grade: ${assignment.module_grade !== undefined ? assignment.module_grade.toFixed(2) : 'N/A'}/10
+                </div>
+                <h3 style="margin: 2rem 0 1rem 0; color: var(--text-primary);">Responses (${assignment.responses.length})</h3>
+                ${assignment.responses.map(response => {
+                    const content = response.contents && response.contents.length > 0 
+                        ? response.contents[0].content 
+                        : 'No content available';
+                    const grade = response.grade !== undefined ? response.grade : 0;
+                    return `
+                        <div class="response-item" data-response-id="${response.id}">
+                            <div class="response-header">
+                                <span class="response-type ${response.response_type}">${response.response_type}</span>
+                                <span style="color: var(--text-secondary); font-size: 0.875rem;">Response ID: ${response.id}</span>
+                            </div>
+                            <div class="response-content">${content}</div>
+                            <div class="grade-section">
+                                <span class="grade-display">Grade: ${grade}/10</span>
+                                ${response.response_type === 'Redo' ? `
+                                    <form class="grade-form" onsubmit="updateGrade(event, ${response.id}, ${assignment.assignment_id})">
+                                        <input type="number" 
+                                               class="grade-input form-control" 
+                                               min="1" 
+                                               max="10" 
+                                               step="0.1" 
+                                               value="${grade}"
+                                               data-response-id="${response.id}"
+                                               required>
+                                        <button type="submit" class="btn btn-success btn-sm">Update Grade</button>
+                                    </form>
+                                ` : '<span style="color: var(--text-secondary); font-style: italic;">Grade cannot be modified</span>'}
+                            </div>
+                            ${response.file_name ? `
+                                <div class="files-section">
+                                    <div id="files-content-${response.id}" class="files-content">
+                                        <div class="files-info">
+                                            <span class="loading-spinner"></span>Loading files...
+                                        </div>
+                                    </div>
+                                </div>
+                            ` : `
+                                <div class="files-section">
+                                    <div class="files-content">
+                                        <div class="no-files">No files attached to this response</div>
+                                    </div>
+                                </div>
+                            `}
+                        </div>
+                    `;
+                }).join('')}
+            `;
+            assignmentContent.innerHTML = html;
+            assignment.responses.forEach(response => {
+                if (response.file_name) {
+                    loadResponseFiles(response.id);
+                }
+            });
+        }
+        
+        async function updateGrade(event, responseId, assignmentId) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const input = form.querySelector('input[data-response-id="' + responseId + '"]');
+            const button = form.querySelector('button[type="submit"]');
+            const newGrade = parseFloat(input.value);
+            
+            if (isNaN(newGrade) || newGrade < 1 || newGrade > 10) {
+                showMessage('Grade must be between 1 and 10');
+                return;
+            }
+            
+            const studentId = studentSelect.value;
+            const subjectId = subjectSelect.value;
+            const moduleId = moduleSelect.value;
+            
+            try {
+                showLoading(button, 'Updating...');
+                
+                await apiCall('/grades/assignment', {
+                    method: 'PUT',
+                    body: JSON.stringify({ 
+                        student_id: parseInt(studentId),
+                        response_id: responseId,
+                        assignment_id: assignmentId,
+                        module_id: parseInt(moduleId),
+                        subject_id: parseInt(subjectId),
+                        new_grade: newGrade
+                    })
+                });
+                
+                // Update the grade display in the current response
+                const gradeSpan = form.parentElement.querySelector('.grade-display');
+                gradeSpan.textContent = `Grade: ${newGrade}/10`;
+                
+                // Update the response in our local data
+                const responseIndex = currentAssignment.responses.findIndex(r => r.id === responseId);
+                if (responseIndex !== -1) {
+                    currentAssignment.responses[responseIndex].grade = newGrade;
+                }
+                
+                // Recalculate and update total grade
+                await updateTotalGrade();
+                
+                showMessage('Grade updated successfully!', 'success');
+            } catch (error) {
+                showMessage(`Failed to update grade: ${error.message}`);
+            } finally {
+                hideLoading(button);
+            }
+        }
+        
+        async function updateTotalGrade() {
+            try {
+                // Recalculate total grade from current responses
+                if (currentAssignment && currentAssignment.responses) {
+                    const totalGrade = currentAssignment.responses.length > 0 
+                        ? currentAssignment.responses.reduce((sum, r) => sum + (r.grade || 0), 0) / currentAssignment.responses.length 
+                        : 0;
+                    
+                    // Update the total grade display
+                    const totalGradeDiv = document.querySelector('.total-grade');
+                    totalGradeDiv.textContent = `Total Grade: ${totalGrade.toFixed(1)}/10`;
+                    
+                    // Update our local data
+                    currentAssignment.total_grade = totalGrade;
+                }
+            } catch (error) {
+                console.error('Failed to update total grade:', error);
+            }
+        }
+        
+        async function loadResponseFiles(responseId) {
+            const assignmentId = currentAssignment.assignment_id;
+            const filesContent = document.getElementById(`files-content-${responseId}`);
+            const filesInfo = filesContent.querySelector('.files-info');
+            
+            try {
+                filesInfo.textContent = 'Loading files...';
+                
+                const filesData = await apiCall(`/course/assignments/${assignmentId}/responses/${responseId}/files`);
+                
+                if (filesData.has_files && filesData.files.length > 0) {
+                    createFileViewer(filesData, filesContent);
+                } else {
+                    filesInfo.innerHTML = '<div class="no-files">No files attached to this response</div>';
+                }
+            } catch (error) {
+                filesInfo.innerHTML = `<div class="error">Error loading files: ${error.message}</div>`;
+                console.error('Failed to load response files:', error);
+            }
+        }
+        
+        function createFileViewer(filesData, container) {
+            const totalSizeKB = Math.round(filesData.total_size / 1024);
+            
+            const viewerHTML = `
+                <div class="files-info">
+                    <div><strong>Files:</strong> ${filesData.files.length} file(s)</div>
+                    <div><strong>Total Size:</strong> ${totalSizeKB} KB</div>
+                </div>
+                <div class="file-viewer">
+                    <div class="file-list">
+                        ${filesData.files.map((file, index) => `
+                            <div class="file-item ${index === 0 ? 'selected' : ''}" 
+                                 onclick="selectFile(${filesData.response_id}, ${index})"
+                                 data-file-index="${index}">
+                                <span class="file-name">${file.name}</span>
+                                <span class="file-size">${Math.round(file.size / 1024)} KB</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="file-content" id="file-content-${filesData.response_id}">
+                        ${filesData.files.length > 0 ? getFileContentHTML(filesData.files[0]) : '<div class="no-file-selected">Select a file to view its content</div>'}
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = viewerHTML;
+            
+            // Store files data for later use
+            container.dataset.filesData = JSON.stringify(filesData);
+        }
+        
+        function selectFile(responseId, fileIndex) {
+            const filesContent = document.getElementById(`files-content-${responseId}`);
+            const filesData = JSON.parse(filesContent.dataset.filesData);
+            const file = filesData.files[fileIndex];
+            
+            // Update selected file in the list
+            const fileItems = filesContent.querySelectorAll('.file-item');
+            fileItems.forEach((item, index) => {
+                if (index === fileIndex) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+            
+            // Update file content display
+            const fileContentDiv = document.getElementById(`file-content-${responseId}`);
+            fileContentDiv.innerHTML = getFileContentHTML(file);
+        }
+        
+        function getFileContentHTML(file) {
+            try {
+                // For text files, decode and display in a pre tag
+                if (file.mime_type && file.mime_type.startsWith('text/')) {
+                    const textContent = atob(file.content);
+                    const escapedContent = textContent
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;');
+                    
+                    return `<pre style="white-space: pre-wrap; font-family: monospace; background: #f8f9fa; padding: 15px; border-radius: 4px; overflow-x: auto; max-height: 400px;">${escapedContent}</pre>`;
+                }
+                
+                // For images, use data URL directly
+                if (file.mime_type && file.mime_type.startsWith('image/')) {
+                    return `<img src="data:${file.mime_type};base64,${file.content}" alt="${file.name}" style="max-width: 100%; height: auto; border-radius: 4px;" />`;
+                }
+                
+                // For PDFs and other embeddable documents, use iframe
+                if (file.mime_type && (
+                    file.mime_type === 'application/pdf' ||
+                    file.mime_type.startsWith('text/') ||
+                    file.mime_type === 'application/json' ||
+                    file.mime_type === 'application/xml'
+                )) {
+                    const dataUrl = `data:${file.mime_type};base64,${file.content}`;
+                    return `
+                        <div style="margin-bottom: 10px;">
+                            <button class="file-download" onclick="downloadSingleFile('${file.name}', '${file.content}', '${file.mime_type}')" style="margin-bottom: 10px;">
+                                Download ${file.name}
+                            </button>
+                        </div>
+                        <iframe src="${dataUrl}" style="width: 100%; height: 500px; border: 1px solid #ddd; border-radius: 4px;" frameborder="0">
+                            Your browser does not support iframes. 
+                            <a href="${dataUrl}" target="_blank">Click here to view the file</a>
+                        </iframe>
+                    `;
+                }
+                
+                // For other files, show download option
+                return `
+                    <div class="binary-file-notice">
+                        This file type (${file.mime_type || 'unknown'}) cannot be displayed directly.<br>
+                        <button class="file-download" onclick="downloadSingleFile('${file.name}', '${file.content}', '${file.mime_type}')">
+                            Download ${file.name}
+                        </button>
+                    </div>
+                `;
+            } catch (error) {
+                return `
+                    <div class="binary-file-notice">
+                        Error processing file content<br>
+                        <button class="file-download" onclick="downloadSingleFile('${file.name}', '${file.content}', '${file.mime_type || 'application/octet-stream'}')">
+                            Download ${file.name}
+                        </button>
+                    </div>
+                `;
+            }
+        }
+        
+        function downloadSingleFile(filename, base64Content, mimeType = 'application/octet-stream') {
+            try {
+                const byteCharacters = atob(base64Content);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: mimeType });
+                
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                showMessage(`${filename} downloaded successfully!`, 'success');
+            } catch (error) {
+                showMessage(`Failed to download ${filename}: ${error.message}`);
+                console.error('Download error:', error);
+            }
+        }
+
+        // Event listeners
+        subjectSelect.addEventListener('change', (e) => {
+            if (e.target.value) {
+                loadModules(e.target.value);
+            } else {
+                moduleSelect.innerHTML = '<option value="">Select a subject first</option>';
+                moduleSelect.disabled = true;
+                exerciseSelect.innerHTML = '<option value="">Select a module first</option>';
+                exerciseSelect.disabled = true;
+                updateLoadButton();
+            }
+        });
+        
+        moduleSelect.addEventListener('change', (e) => {
+            if (e.target.value) {
+                loadExercises(e.target.value);
+            } else {
+                exerciseSelect.innerHTML = '<option value="">Select module first</option>';
+                exerciseSelect.disabled = true;
+                updateLoadButton();
+            }
+        });
+        
+        exerciseSelect.addEventListener('change', updateLoadButton);
+        studentSelect.addEventListener('change', updateLoadButton);
+        loadAssignmentBtn.addEventListener('click', loadAssignment);
+        
+        // Global function assignments for inline event handlers
+        window.updateGrade = updateGrade;
+        window.selectFile = selectFile;
+        window.downloadSingleFile = downloadSingleFile;
+        window.showTab = showTab;
+        window.loadStudentGradesTree = loadStudentGradesTree;
+        window.toggleTreeNode = toggleTreeNode;
+        
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Initialize connection status
+            updateConnectionStatus('connecting');
+            
+            // Check API health first
+            const isHealthy = await checkApiHealth();
+            
+            if (isHealthy) {
+                // Initialize timestamp display
+                updateLastModifiedTimestamp();
+                
+                // Load initial data
+                try {
+                    await Promise.all([
+                        loadSubjects(),
+                        loadStudents(),
+                        loadStudentsForTree()
+                    ]);
+                } catch (error) {
+                    console.error('Failed to load initial data:', error);
+                    showMessage('Some data failed to load. Please refresh the page.', 'warning');
+                }
+            } else {
+                showMessage('Cannot connect to API server. Please ensure the server is running on port 8080.', 'warning');
+            }
+            
+            // Setup auto-refresh functionality
+            setupAutoRefresh();
+            
+            // Setup periodic health checks every 30 seconds
+            setInterval(async () => {
+                await checkApiHealth();
+            }, 30000);
+            
+            // Register service worker for better cache control (if available)
+            if ('serviceWorker' in navigator) {
+                // Unregister any existing service workers to prevent caching issues
+                navigator.serviceWorker.getRegistrations().then(registrations => {
+                    registrations.forEach(registration => {
+                        registration.unregister();
+                    });
+                });
+            }
+            
+            // Add refresh button functionality
+            const header = document.querySelector('.header-content');
+            const refreshBtn = document.createElement('button');
+            refreshBtn.innerHTML = '↻ Refresh';
+            refreshBtn.className = 'btn btn-primary btn-sm';
+            refreshBtn.style.cssText = `
+                position: absolute;
+                top: 12px;
+                right: 12px;
+                font-size: 12px;
+                padding: 4px 8px;
+            `;
+            refreshBtn.addEventListener('click', async () => {
+                refreshBtn.disabled = true;
+                refreshBtn.innerHTML = '<span class="loading-spinner"></span>Refreshing...';
+                
+                // Clear any cached data
+                if ('caches' in window) {
+                    try {
+                        const names = await caches.keys();
+                        await Promise.all(names.map(name => caches.delete(name)));
+                    } catch (error) {
+                        console.warn('Cache clearing failed:', error);
+                    }
+                }
+                
+                // Check health before reloading
+                const isHealthy = await checkApiHealth();
+                if (isHealthy) {
+                    setTimeout(() => location.reload(), 100);
+                } else {
+                    refreshBtn.disabled = false;
+                    refreshBtn.innerHTML = '↻ Refresh';
+                    showMessage('Cannot connect to server. Please check if the API is running.', 'warning');
+                }
+            });
+            
+            header.style.position = 'relative';
+            header.appendChild(refreshBtn);
+            
+            // Add version info to console for debugging
+            console.log('Evaluer Academic Grading System');
+            console.log('Version: 2.0.0');
+            console.log('Loaded at:', new Date().toISOString());
+            console.log('API Base URL:', API_BASE);
+            console.log('Cache busting enabled - all API calls include timestamp parameters');
+            console.log('Health check monitoring enabled with 30s intervals');
+        });
+    </script>
+</body>
+</html>

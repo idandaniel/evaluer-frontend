@@ -22,7 +22,7 @@ export const HomePage = () => {
             </p>
           </div>
 
-          <Tabs defaultValue="student-assignment" className="space-y-6">
+          <Tabs defaultValue="student-assignment" className="space-y-8">
             <TabsList className="grid w-full grid-cols-2 sm:w-auto sm:grid-cols-none sm:flex">
               <TabsTrigger
                 value="student-assignment"
@@ -41,10 +41,10 @@ export const HomePage = () => {
                 </Badge>
               </TabsTrigger>
             </TabsList>
-            <TabsContent value="student-assignment" className="mt-6">
+            <TabsContent value="student-assignment">
               <StudentAssignmentPage />
             </TabsContent>
-            <TabsContent value="grades-overview" className="mt-6">
+            <TabsContent value="grades-overview">
               <Card>
                 <CardHeader>
                   <CardTitle>Grades Overview</CardTitle>

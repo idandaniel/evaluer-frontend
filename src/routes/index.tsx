@@ -6,9 +6,5 @@ export const Route = createFileRoute('/')({
 })
 
 function App() {
-  return (
-    <div className="flex h-100dvh flex-col items-center justify-center">
-      <HomePage />
-    </div>
-  )
+  return <HomePage />
 }

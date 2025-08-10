@@ -7,11 +7,12 @@ import {
 } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { StudentAssignmentPage } from '@/pages/student-assignment'
+import { GradesOverviewPage } from '@/pages/grades-overview'
 
 export const HomePage = () => {
   return (
-    <div className="min-h-screen w-full lg:w-4xl bg-background">
-      <main className="container mx-auto py-6">
+    <div className="min-h-screen w-full bg-background">
+      <main className="container mx-auto max-w-4xl py-6">
         <div className="space-y-6 sm:space-y-8">
           <div className="space-y-2 sm:space-y-3">
             <h1 className="text-2xl font-bold sm:text-3xl lg:text-4xl">
@@ -22,7 +23,10 @@ export const HomePage = () => {
             </p>
           </div>
 
-          <Tabs defaultValue="student-assignment" className="space-y-8">
+          <Tabs
+            defaultValue="student-assignment"
+            className="space-y-6 sm:space-y-8"
+          >
             <TabsList className="grid w-full grid-cols-2 sm:w-auto sm:grid-cols-none sm:flex">
               <TabsTrigger
                 value="student-assignment"
@@ -35,7 +39,6 @@ export const HomePage = () => {
                 className="text-xs sm:text-sm"
               >
                 <span className="hidden sm:inline">Grades Overview</span>
-                <span className="sm:hidden">Grades</span>
                 <Badge variant="outline" className="ml-1 sm:ml-2">
                   Soon
                 </Badge>
@@ -45,14 +48,7 @@ export const HomePage = () => {
               <StudentAssignmentPage />
             </TabsContent>
             <TabsContent value="grades-overview">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Grades Overview</CardTitle>
-                  <CardDescription>
-                    An overview for your students' grades (coming soon)
-                  </CardDescription>
-                </CardHeader>
-              </Card>
+              <GradesOverviewPage />
             </TabsContent>
           </Tabs>
         </div>

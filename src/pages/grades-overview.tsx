@@ -1,18 +1,12 @@
-import { useState } from 'react'
-import { Loader2 } from 'lucide-react'
+import { Loader2, RotateCcw } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { GradesTreeView } from '@/components/grades-tree'
+import { HiveResourceSelect } from '@/components/hive-resource-select'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useCourseStudents } from '@/hooks/use-course-student'
 import { useStudentGradesTree } from '@/hooks/use-student-grades-tree'
-import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
-import { HiveResourceSelect } from '@/components/hive-resource-select'
-import { GradesTreeView } from '@/components/grades-tree'
 
 export const GradesOverviewPage = () => {
   const [studentId, setStudentId] = useState<string>('')
@@ -25,9 +19,11 @@ export const GradesOverviewPage = () => {
     isFetching,
   } = useStudentGradesTree(studentId ? parseInt(studentId) : 0)
 
-  const handleLoad = () => {
+  useEffect(() => {
     if (studentId) refetch()
-  }
+  }, [studentId, refetch])
+
+  const showRefresh = !!gradesTree && !!studentId && !error
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -39,22 +35,28 @@ export const GradesOverviewPage = () => {
           value={studentId}
           onValueChange={setStudentId}
         />
-        <div className="flex gap-2">
-          <Button
-            onClick={handleLoad}
-            disabled={!studentId || studentsQuery.isLoading || isFetching}
-          >
-            {isFetching ? <Loader2 className="animate-spin" /> : 'Load Grades'}
-          </Button>
-        </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Grades Overview</CardTitle>
-          <CardDescription>
-            Select a student to view the grades tree
-          </CardDescription>
+          <CardTitle className="flex items-center gap-2">
+            Grades Overview
+            {showRefresh && (
+              <Button
+                onClick={() => refetch()}
+                size="sm"
+                variant="ghost"
+                disabled={isFetching}
+                aria-label="Refresh grades"
+              >
+                {isFetching ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <RotateCcw className="size-4" />
+                )}
+              </Button>
+            )}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6 sm:space-y-8">
           {!studentId ? (

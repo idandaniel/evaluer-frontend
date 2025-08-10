@@ -79,20 +79,16 @@ export const GradesTreeView = ({ data }: GradesTreeProps) => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="text-sm font-medium">Overall</div>
-        <Badge className={gradeBadgeClass(data.overall, '100')}>
-          {data.overall.toFixed(1)} / 100
-        </Badge>
-      </div>
-
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 w-full">
         <Button variant="outline" size="sm" onClick={expandAll}>
           Expand all
         </Button>
         <Button variant="outline" size="sm" onClick={collapseAll}>
           Collapse all
         </Button>
+        <Badge className={cn(gradeBadgeClass(data.overall, '100'), 'ms-auto')}>
+          {data.overall.toFixed(1)} / 100
+        </Badge>
       </div>
 
       <div className="space-y-3">

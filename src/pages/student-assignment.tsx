@@ -55,7 +55,7 @@ export const StudentAssignmentPage = () => {
               </div>
             </CardContent>
           </Card>
-        ) : assignment && assignmentGrade ? (
+        ) : assignment && assignmentGrade !== undefined ? (
           <StudentAssignmentDisplay
             assignment={assignment}
             assignmentGrade={assignmentGrade}
